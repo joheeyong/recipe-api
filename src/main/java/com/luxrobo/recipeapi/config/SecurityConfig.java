@@ -48,7 +48,9 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
             "http://localhost:3000",
-            "https://recipe-web.vercel.app"
+            "https://recipe-web.vercel.app",
+            "https://recipe-web-rosy.vercel.app",
+            "https://recipe-k4gl21xpq-joheeyongs-projects.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
