@@ -4,10 +4,10 @@ After=network.target
 
 [Service]
 Type=simple
-User=ubuntu
-WorkingDirectory=/home/ubuntu/recipe-api
-ExecStart=/usr/bin/java -jar -Dspring.profiles.active=prod /home/ubuntu/recipe-api/recipe-api-0.0.1-SNAPSHOT.jar
-EnvironmentFile=/home/ubuntu/recipe-api/.env
+User=ec2-user
+WorkingDirectory=/home/ec2-user/recipe-api
+ExecStart=/usr/bin/java -jar -Dspring.profiles.active=prod /home/ec2-user/recipe-api/recipe-api-0.0.1-SNAPSHOT.jar
+EnvironmentFile=/home/ec2-user/recipe-api/.env
 Restart=always
 RestartSec=10
 StandardOutput=journal

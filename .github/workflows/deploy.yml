@@ -25,17 +25,17 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
+          username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "build/libs/recipe-api-0.0.1-SNAPSHOT.jar"
-          target: "/home/ubuntu/recipe-api/"
+          target: "/home/ec2-user/recipe-api/"
           strip_components: 2
 
       - name: Restart service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
+          username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo systemctl restart recipe
