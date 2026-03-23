@@ -41,6 +41,9 @@ public class UserPreferenceController {
         pref.setSpicyLevel(body.getSpicyLevel());
         pref.setSweetnessLevel(body.getSweetnessLevel());
         pref.setSaltinessLevel(body.getSaltinessLevel());
+        pref.setSournessLevel(body.getSournessLevel());
+        pref.setUmamiLevel(body.getUmamiLevel());
+        pref.setOilinessLevel(body.getOilinessLevel());
         pref.setDietaryRestrictions(body.getDietaryRestrictions());
         pref.setDislikedIngredients(body.getDislikedIngredients());
         pref.setPreferredCuisines(body.getPreferredCuisines());

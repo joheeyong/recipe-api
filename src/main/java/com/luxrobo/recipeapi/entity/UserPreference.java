@@ -14,13 +14,22 @@ public class UserPreference {
     private Long userId;
 
     @Column(name = "spicy_level")
-    private int spicyLevel = 3;
+    private int spicyLevel = 5;
 
     @Column(name = "sweetness_level")
-    private int sweetnessLevel = 3;
+    private int sweetnessLevel = 5;
 
     @Column(name = "saltiness_level")
-    private int saltinessLevel = 3;
+    private int saltinessLevel = 5;
+
+    @Column(name = "sourness_level")
+    private int sournessLevel = 5;
+
+    @Column(name = "umami_level")
+    private int umamiLevel = 5;
+
+    @Column(name = "oiliness_level")
+    private int oilinessLevel = 5;
 
     @Column(name = "dietary_restrictions", length = 500)
     private String dietaryRestrictions;
@@ -50,6 +59,12 @@ public class UserPreference {
     public void setSweetnessLevel(int sweetnessLevel) { this.sweetnessLevel = sweetnessLevel; }
     public int getSaltinessLevel() { return saltinessLevel; }
     public void setSaltinessLevel(int saltinessLevel) { this.saltinessLevel = saltinessLevel; }
+    public int getSournessLevel() { return sournessLevel; }
+    public void setSournessLevel(int sournessLevel) { this.sournessLevel = sournessLevel; }
+    public int getUmamiLevel() { return umamiLevel; }
+    public void setUmamiLevel(int umamiLevel) { this.umamiLevel = umamiLevel; }
+    public int getOilinessLevel() { return oilinessLevel; }
+    public void setOilinessLevel(int oilinessLevel) { this.oilinessLevel = oilinessLevel; }
     public String getDietaryRestrictions() { return dietaryRestrictions; }
     public void setDietaryRestrictions(String dietaryRestrictions) { this.dietaryRestrictions = dietaryRestrictions; }
     public String getDislikedIngredients() { return dislikedIngredients; }
