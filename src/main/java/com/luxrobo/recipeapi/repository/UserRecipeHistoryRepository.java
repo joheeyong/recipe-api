@@ -15,4 +15,9 @@ public interface UserRecipeHistoryRepository extends JpaRepository<UserRecipeHis
     List<Long> findRecipeIdsByUserId(@Param("userId") Long userId);
 
     boolean existsByUserIdAndRecipeIdAndAction(Long userId, Long recipeId, String action);
+
+    void deleteByUserIdAndRecipeIdAndAction(Long userId, Long recipeId, String action);
+
+    @Query("SELECT h.recipeId FROM UserRecipeHistory h WHERE h.userId = :userId AND h.action = :action ORDER BY h.createdAt DESC")
+    List<Long> findRecipeIdsByUserIdAndAction(@Param("userId") Long userId, @Param("action") String action);
 }
