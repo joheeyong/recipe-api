@@ -31,9 +31,9 @@ public class RecipeService {
     }
 
     public Page<Recipe> search(String query, String cuisine, String category,
-                               Integer difficulty, int page, int size) {
+                               Integer difficulty, Boolean userRecipe, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return recipeRepository.search(query, cuisine, category, difficulty, pageRequest);
+        return recipeRepository.search(query, cuisine, category, difficulty, userRecipe, pageRequest);
     }
 
     public Map<String, Object> getDetail(Long recipeId) {

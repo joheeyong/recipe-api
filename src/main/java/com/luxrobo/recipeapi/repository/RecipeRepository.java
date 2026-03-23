@@ -15,11 +15,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
            "(:query IS NULL OR r.title LIKE %:query% OR r.description LIKE %:query% OR r.tags LIKE %:query%) AND " +
            "(:cuisine IS NULL OR r.cuisine = :cuisine) AND " +
            "(:category IS NULL OR r.category = :category) AND " +
-           "(:difficulty IS NULL OR r.difficulty = :difficulty)")
+           "(:difficulty IS NULL OR r.difficulty = :difficulty) AND " +
+           "((:userRecipe IS NULL AND r.userId IS NULL) OR (:userRecipe = true AND r.userId IS NOT NULL))")
     Page<Recipe> search(@Param("query") String query,
                         @Param("cuisine") String cuisine,
                         @Param("category") String category,
                         @Param("difficulty") Integer difficulty,
+                        @Param("userRecipe") Boolean userRecipe,
                         Pageable pageable);
 
     List<Recipe> findByCuisine(String cuisine);

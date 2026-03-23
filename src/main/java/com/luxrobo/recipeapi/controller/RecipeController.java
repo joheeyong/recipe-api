@@ -39,9 +39,10 @@ public class RecipeController {
             @RequestParam(required = false) String cuisine,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer difficulty,
+            @RequestParam(required = false) Boolean userRecipe,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(recipeService.search(query, cuisine, category, difficulty, page, size));
+        return ResponseEntity.ok(recipeService.search(query, cuisine, category, difficulty, userRecipe, page, size));
     }
 
     @GetMapping("/{id}")
