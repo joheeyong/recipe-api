@@ -13,11 +13,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.luxrobo.recipeapi.entity.User;
+import com.luxrobo.recipeapi.repository.UserRepository;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/my-recipes")
@@ -26,20 +30,53 @@ public class UserRecipeController {
     private final RecipeRepository recipeRepository;
     private final RecipeIngredientRepository ingredientRepository;
     private final RecipeStepRepository stepRepository;
+    private final UserRepository userRepository;
 
     @Value("${upload.dir:./uploads}")
     private String uploadDir;
 
     public UserRecipeController(RecipeRepository recipeRepository,
                                  RecipeIngredientRepository ingredientRepository,
-                                 RecipeStepRepository stepRepository) {
+                                 RecipeStepRepository stepRepository,
+                                 UserRepository userRepository) {
         this.recipeRepository = recipeRepository;
         this.ingredientRepository = ingredientRepository;
         this.stepRepository = stepRepository;
+        this.userRepository = userRepository;
+    }
+
+    /** 모든 사용자 레시피 목록 (공개) */
+    @GetMapping("/all")
+    public ResponseEntity<?> allUserRecipes() {
+        List<Recipe> recipes = recipeRepository.findByUserIdIsNotNullOrderByCreatedAtDesc();
+
+        // 작성자 이름 매핑
+        Set<Long> userIds = recipes.stream().map(Recipe::getUserId).collect(Collectors.toSet());
+        Map<Long, String> userNameMap = new HashMap<>();
+        if (!userIds.isEmpty()) {
+            userRepository.findAllById(userIds).forEach(u -> userNameMap.put(u.getId(), u.getName()));
+        }
+
+        List<Map<String, Object>> result = recipes.stream().map(r -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", r.getId());
+            m.put("title", r.getTitle());
+            m.put("description", r.getDescription());
+            m.put("category", r.getCategory());
+            m.put("difficulty", r.getDifficulty());
+            m.put("cookTimeMinutes", r.getCookTimeMinutes());
+            m.put("imageUrl", r.getImageUrl());
+            m.put("userId", r.getUserId());
+            m.put("userName", userNameMap.getOrDefault(r.getUserId(), "익명"));
+            m.put("createdAt", r.getCreatedAt());
+            return m;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
     }
 
     /** 내가 등록한 레시피 목록 */
-    @GetMapping
+    @GetMapping("/mine")
     public ResponseEntity<?> myList(Authentication auth) {
         if (auth == null) {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다"));

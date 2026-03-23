@@ -26,6 +26,8 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     List<Recipe> findByUserIdOrderByCreatedAtDesc(Long userId);
 
+    List<Recipe> findByUserIdIsNotNullOrderByCreatedAtDesc();
+
     @Query("SELECT r FROM Recipe r WHERE r.id NOT IN :excludeIds ORDER BY r.createdAt DESC")
     List<Recipe> findExcluding(@Param("excludeIds") List<Long> excludeIds, Pageable pageable);
 }
