@@ -32,7 +32,8 @@ public class OAuthService {
 
     private static final Set<String> ALLOWED_REDIRECTS = Set.of(
         "http://localhost:3000",
-        "https://recipe-web.vercel.app"
+        "https://recipe-web.vercel.app",
+        "https://recipe-web-rosy.vercel.app"
     );
 
     public OAuthService(UserRepository userRepository, JwtProvider jwtProvider) {
