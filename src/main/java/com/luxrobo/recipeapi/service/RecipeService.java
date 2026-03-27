@@ -21,13 +21,16 @@ public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final RecipeIngredientRepository ingredientRepository;
     private final RecipeStepRepository stepRepository;
+    private final IngredientScaleService scaleService;
 
     public RecipeService(RecipeRepository recipeRepository,
                          RecipeIngredientRepository ingredientRepository,
-                         RecipeStepRepository stepRepository) {
+                         RecipeStepRepository stepRepository,
+                         IngredientScaleService scaleService) {
         this.recipeRepository = recipeRepository;
         this.ingredientRepository = ingredientRepository;
         this.stepRepository = stepRepository;
+        this.scaleService = scaleService;
     }
 
     public Page<Recipe> search(String query, String cuisine, String category,
@@ -41,6 +44,18 @@ public class RecipeService {
                 .orElseThrow(() -> new RuntimeException("Recipe not found"));
         List<RecipeIngredient> ingredients = ingredientRepository.findByRecipeIdOrderById(recipeId);
         List<RecipeStep> steps = stepRepository.findByRecipeIdOrderByStepNumber(recipeId);
+
+        // scaleType이 null이면 자동 추론 후 저장
+        boolean updated = false;
+        for (RecipeIngredient ing : ingredients) {
+            if (ing.getScaleType() == null || ing.getScaleType().isEmpty()) {
+                ing.setScaleType(scaleService.inferScaleType(ing.getName(), ing.getAmount()));
+                updated = true;
+            }
+        }
+        if (updated) {
+            ingredientRepository.saveAll(ingredients);
+        }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("recipe", recipe);

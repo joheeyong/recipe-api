@@ -22,6 +22,15 @@ public class RecipeIngredient {
     @Column(name = "is_optional")
     private boolean optional = false;
 
+    /**
+     * 인분 스케일링 유형:
+     * - "linear": 정비례 (면, 고기, 채소, 양념) — 기본값
+     * - "sublinear": 비선형 감소 (물, 육수, 국물 — ratio^0.75)
+     * - "fixed": 고정 (볶음 기름, 삶는 물, 약간/적당량)
+     */
+    @Column(name = "scale_type", length = 20)
+    private String scaleType = "linear";
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getRecipeId() { return recipeId; }
@@ -32,4 +41,6 @@ public class RecipeIngredient {
     public void setAmount(String amount) { this.amount = amount; }
     public boolean isOptional() { return optional; }
     public void setOptional(boolean optional) { this.optional = optional; }
+    public String getScaleType() { return scaleType; }
+    public void setScaleType(String scaleType) { this.scaleType = scaleType; }
 }
