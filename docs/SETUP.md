@@ -70,13 +70,13 @@ open http://localhost:8080/swagger-ui.html
 
 ```bash
 # EC2에 SSH 접속
-ssh -i ~/.ssh/dadoc-key.pem ec2-user@54.180.179.231
+ssh -i ~/.ssh/dadoc-key.pem ubuntu@54.180.179.231
 
 # 설정 스크립트 실행 (1회)
 bash deploy/setup.sh
 
 # .env 파일 편집
-vi /home/ec2-user/recipe-api/.env
+vi /home/ubuntu/recipe-api/.env
 ```
 
 ### Auto Deploy
@@ -99,10 +99,10 @@ vi /home/ec2-user/recipe-api/.env
 
 # EC2에 복사
 scp -i ~/.ssh/dadoc-key.pem build/libs/recipe-api-0.0.1-SNAPSHOT.jar \
-  ec2-user@54.180.179.231:/home/ec2-user/recipe-api/
+  ubuntu@54.180.179.231:/home/ubuntu/recipe-api/recipe-api.jar
 
 # EC2에서 재시작
-ssh -i ~/.ssh/dadoc-key.pem ec2-user@54.180.179.231 \
+ssh -i ~/.ssh/dadoc-key.pem ubuntu@54.180.179.231 \
   "sudo systemctl restart recipe"
 ```
 
@@ -110,11 +110,11 @@ ssh -i ~/.ssh/dadoc-key.pem ec2-user@54.180.179.231 \
 
 ```bash
 # 실시간 로그
-ssh -i ~/.ssh/dadoc-key.pem ec2-user@54.180.179.231 \
+ssh -i ~/.ssh/dadoc-key.pem ubuntu@54.180.179.231 \
   "sudo journalctl -u recipe -f"
 
 # 최근 100줄
-ssh -i ~/.ssh/dadoc-key.pem ec2-user@54.180.179.231 \
+ssh -i ~/.ssh/dadoc-key.pem ubuntu@54.180.179.231 \
   "sudo journalctl -u recipe -n 100"
 ```
 
@@ -134,7 +134,7 @@ MySQL Workbench 접속 시 RDS 보안 그룹에 IP 허용 필요.
 
 ```
 recipe-api/
-├── .github/workflows/deploy.yml    # CI/CD 파이프라인
+├── .github/workflows/deploy.yml    # CI/CD 파이프라인 (GitHub Actions)
 ├── deploy/
 │   ├── recipe.service              # systemd 서비스 파일
 │   └── setup.sh                    # EC2 초기 설정 스크립트
@@ -143,15 +143,51 @@ recipe-api/
 │   ├── ARCHITECTURE.md             # 아키텍처 문서
 │   └── SETUP.md                    # 이 파일
 ├── src/main/java/com/luxrobo/recipeapi/
-│   ├── config/                     # SecurityConfig, WebConfig, OpenApiConfig, GlobalExceptionHandler
-│   ├── security/                   # JwtProvider, JwtAuthenticationFilter
-│   ├── controller/                 # REST 컨트롤러 (9개)
-│   ├── service/                    # 비즈니스 서비스 (4개)
-│   ├── repository/                 # JPA 리포지토리 (9개)
-│   └── entity/                     # JPA 엔티티 (9개)
+│   ├── config/
+│   │   ├── GlobalExceptionHandler.java
+│   │   ├── OpenApiConfig.java
+│   │   ├── SecurityConfig.java
+│   │   └── WebConfig.java
+│   ├── security/
+│   │   ├── JwtProvider.java
+│   │   └── JwtAuthenticationFilter.java
+│   ├── controller/                 # REST 컨트롤러 (11개)
+│   │   ├── AuthController.java
+│   │   ├── RecipeController.java
+│   │   ├── UserRecipeController.java
+│   │   ├── BookmarkController.java
+│   │   ├── ReviewController.java
+│   │   ├── BlogController.java
+│   │   ├── RecommendationController.java
+│   │   ├── UserPreferenceController.java
+│   │   ├── CollectionController.java
+│   │   ├── NotificationController.java
+│   │   └── HealthController.java
+│   ├── service/                    # 비즈니스 서비스 (5개)
+│   │   ├── OAuthService.java
+│   │   ├── RecipeService.java
+│   │   ├── RecommendationService.java
+│   │   ├── TasteAdjustmentService.java
+│   │   └── IngredientScaleService.java
+│   ├── repository/                 # JPA 리포지토리 (11개)
+│   └── entity/                     # JPA 엔티티 (11개)
+│       ├── User.java
+│       ├── Recipe.java             # updated_at 포함
+│       ├── RecipeIngredient.java
+│       ├── RecipeStep.java
+│       ├── UserPreference.java
+│       ├── UserRecipeHistory.java
+│       ├── Review.java             # image_url 포함
+│       ├── BlogPost.java
+│       ├── BlogMedia.java
+│       ├── Collection.java
+│       ├── CollectionRecipe.java
+│       └── Notification.java
 ├── src/main/resources/
-│   ├── application.properties      # 기본 설정
-│   └── application-prod.properties # 운영 설정
+│   ├── application.properties      # 기본 설정 (dev, port 8080)
+│   ├── application-prod.properties # 운영 설정 (port 8081, env var 참조)
+│   ├── schema.sql                  # DDL
+│   └── seed-data.sql               # 초기 데이터
 ├── build.gradle
 └── settings.gradle
 ```

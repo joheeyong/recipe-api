@@ -67,18 +67,19 @@ Kakao OAuth 로그인.
 | `cuisine` | string | - | 카테고리 필터 (`korean`, `western`, `chinese`, `japanese`, `southeast_asian`, `mexican`) |
 | `category` | string | - | 요리 분류 (`main`, `side`, `soup`, `dessert`) |
 | `difficulty` | int | - | 난이도 (1: 쉬움, 2: 보통, 3: 어려움) |
-| `userRecipe` | boolean | - | `true`: 사용자 레시피만, `null/미지정`: 시스템 레시피만 |
+| `userRecipe` | boolean | - | `true`: 사용자 레시피만, 미지정: 시스템 레시피만 |
 | `page` | int | 0 | 페이지 번호 (0부터 시작) |
 | `size` | int | 20 | 페이지 크기 |
 
 **Response:** `Page<Recipe>`
 ```json
 {
-  "content": [{ "id": 1, "title": "김치찌개", "cuisine": "korean", ... }],
+  "content": [{ "id": 1, "title": "김치찌개", "cuisine": "korean", "updatedAt": "2026-04-10T12:00:00", ... }],
   "totalElements": 34,
   "totalPages": 2,
   "number": 0,
-  "size": 20
+  "size": 20,
+  "last": false
 }
 ```
 
@@ -158,7 +159,7 @@ Kakao OAuth 로그인.
 **Response:**
 ```json
 [
-  { "id": 31, "title": "밥피자", "userName": "조희용", "userId": 1, ... }
+  { "id": 31, "title": "밥피자", "userName": "조희용", "userId": 1, "createdAt": "...", "updatedAt": "..." }
 ]
 ```
 
@@ -189,6 +190,11 @@ Kakao OAuth 로그인.
 | `stepTips` | string[] | No | 각 단계 팁 |
 | `image` | file | No | 대표 이미지 (최대 10MB) |
 
+### `PUT /api/my-recipes/{id}`
+레시피 수정 (multipart/form-data). 필드 구성은 POST와 동일.
+
+**Auth:** Required (본인 레시피만)
+
 ### `DELETE /api/my-recipes/{id}`
 내 레시피 삭제 (본인만 가능).
 
@@ -207,7 +213,15 @@ Kakao OAuth 로그인.
 ```json
 {
   "reviews": [
-    { "id": 1, "rating": 5, "comment": "맛있어요!", "userName": "조희용", ... }
+    {
+      "id": 1,
+      "rating": 5,
+      "comment": "맛있어요!",
+      "userName": "조희용",
+      "userProfileImage": "...",
+      "imageUrl": "/uploads/reviews/abc123.jpg",
+      "createdAt": "2026-04-01T12:00:00"
+    }
   ],
   "avgRating": 4.5,
   "reviewCount": 12
@@ -215,14 +229,17 @@ Kakao OAuth 로그인.
 ```
 
 ### `POST /api/recipes/{recipeId}/reviews`
-리뷰 작성 (레시피당 1개, 이미 있으면 수정).
+리뷰 작성 (레시피당 1개, 이미 있으면 수정). multipart/form-data.
 
 **Auth:** Required
 
-**Request Body:**
-```json
-{ "rating": 5, "comment": "진짜 맛있어요!" }
-```
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `rating` | int | Yes | 별점 (1-5) |
+| `comment` | string | No | 리뷰 내용 |
+| `image` | file | No | 리뷰 사진 (최대 10MB) |
+
+> 새 리뷰 작성 시 레시피 소유자에게 알림 발송 (자신의 레시피 제외).
 
 ### `DELETE /api/recipes/{recipeId}/reviews/{reviewId}`
 리뷰 삭제 (본인만 가능).
@@ -298,8 +315,66 @@ Kakao OAuth 로그인.
 | `content` | string | Yes | 글 내용 |
 | `files` | file[] | No | 이미지/동영상 (최대 10MB/개) |
 
+> 작성 시 레시피 소유자에게 알림 발송 (자신의 레시피 제외).
+
 ### `DELETE /api/blog/{id}`
 블로그 글 삭제 (본인만).
+
+**Auth:** Required
+
+---
+
+## Collections
+
+### `GET /api/collections`
+내 컬렉션 목록.
+
+**Auth:** Required
+
+**Response:**
+```json
+[
+  { "id": 1, "name": "즐겨찾기", "emoji": "⭐", "description": "...", "recipeCount": 5 }
+]
+```
+
+### `POST /api/collections`
+컬렉션 생성.
+
+**Auth:** Required
+
+**Request Body:**
+```json
+{ "name": "즐겨찾기", "emoji": "⭐", "description": "설명" }
+```
+
+### `PUT /api/collections/{id}`
+컬렉션 수정.
+
+**Auth:** Required (본인만)
+
+### `DELETE /api/collections/{id}`
+컬렉션 삭제.
+
+**Auth:** Required (본인만)
+
+### `GET /api/collections/{id}/recipes`
+컬렉션 내 레시피 목록.
+
+**Auth:** Required
+
+### `POST /api/collections/{id}/recipes/{recipeId}`
+컬렉션에 레시피 추가.
+
+**Auth:** Required
+
+### `DELETE /api/collections/{id}/recipes/{recipeId}`
+컬렉션에서 레시피 제거.
+
+**Auth:** Required
+
+### `GET /api/collections/check/{recipeId}`
+레시피가 포함된 컬렉션 ID 목록 반환.
 
 **Auth:** Required
 
@@ -332,6 +407,54 @@ Kakao OAuth 로그인.
 **Auth:** Required
 
 **Request Body:** (위와 동일 형식)
+
+---
+
+## Notifications
+
+### `GET /api/notifications`
+내 알림 목록 (최신 순).
+
+**Auth:** Required
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "type": "REVIEW",
+    "recipeId": 5,
+    "recipeTitle": "김치찌개",
+    "actorName": "홍길동",
+    "read": false,
+    "createdAt": "2026-04-21T10:00:00"
+  }
+]
+```
+
+| type | 발생 조건 |
+|------|---------|
+| `REVIEW` | 내 레시피에 리뷰 작성 |
+| `BLOG` | 내 레시피에 블로그 작성 |
+
+### `GET /api/notifications/unread-count`
+읽지 않은 알림 수.
+
+**Auth:** Optional (미인증 시 0 반환)
+
+**Response:** `{ "count": 3 }`
+
+### `PUT /api/notifications/read-all`
+전체 읽음 처리.
+
+**Auth:** Required
+
+**Response:** `{ "success": true }`
+
+### `DELETE /api/notifications/{id}`
+알림 삭제.
+
+**Auth:** Required (본인 알림만)
 
 ---
 
