@@ -4,8 +4,10 @@ import com.luxrobo.recipeapi.entity.BlogMedia;
 import com.luxrobo.recipeapi.entity.BlogPost;
 import com.luxrobo.recipeapi.entity.Recipe;
 import com.luxrobo.recipeapi.entity.User;
+import com.luxrobo.recipeapi.entity.Notification;
 import com.luxrobo.recipeapi.repository.BlogMediaRepository;
 import com.luxrobo.recipeapi.repository.BlogPostRepository;
+import com.luxrobo.recipeapi.repository.NotificationRepository;
 import com.luxrobo.recipeapi.repository.RecipeRepository;
 import com.luxrobo.recipeapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +32,7 @@ public class BlogController {
     private final BlogMediaRepository blogMediaRepository;
     private final UserRepository userRepository;
     private final RecipeRepository recipeRepository;
+    private final NotificationRepository notificationRepository;
 
     @Value("${upload.dir:./uploads}")
     private String uploadDir;
@@ -37,11 +40,13 @@ public class BlogController {
     public BlogController(BlogPostRepository blogPostRepository,
                           BlogMediaRepository blogMediaRepository,
                           UserRepository userRepository,
-                          RecipeRepository recipeRepository) {
+                          RecipeRepository recipeRepository,
+                          NotificationRepository notificationRepository) {
         this.blogPostRepository = blogPostRepository;
         this.blogMediaRepository = blogMediaRepository;
         this.userRepository = userRepository;
         this.recipeRepository = recipeRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     /** 특정 레시피의 블로그 글 목록 */
@@ -90,6 +95,21 @@ public class BlogController {
         }
 
         enrichPosts(List.of(post));
+
+        // 레시피 소유자에게 알림 (자기 레시피 제외)
+        recipeRepository.findById(recipeId).ifPresent(recipe -> {
+            if (recipe.getUserId() != null && !recipe.getUserId().equals(userId)) {
+                String actorName = userRepository.findById(userId).map(User::getName).orElse("누군가");
+                Notification noti = new Notification();
+                noti.setUserId(recipe.getUserId());
+                noti.setType("BLOG");
+                noti.setRecipeId(recipeId);
+                noti.setRecipeTitle(recipe.getTitle());
+                noti.setActorName(actorName);
+                notificationRepository.save(noti);
+            }
+        });
+
         return ResponseEntity.ok(post);
     }
 

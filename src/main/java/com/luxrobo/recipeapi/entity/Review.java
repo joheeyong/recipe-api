@@ -25,6 +25,9 @@ public class Review {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -36,6 +39,10 @@ public class Review {
     private String userName;
     @Transient
     private String userProfileImage;
+    @Transient
+    private long likeCount;
+    @Transient
+    private boolean likedByMe;
 
     @PrePersist
     protected void onCreate() {
@@ -66,4 +73,10 @@ public class Review {
     public void setUserName(String userName) { this.userName = userName; }
     public String getUserProfileImage() { return userProfileImage; }
     public void setUserProfileImage(String userProfileImage) { this.userProfileImage = userProfileImage; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public long getLikeCount() { return likeCount; }
+    public void setLikeCount(long likeCount) { this.likeCount = likeCount; }
+    public boolean isLikedByMe() { return likedByMe; }
+    public void setLikedByMe(boolean likedByMe) { this.likedByMe = likedByMe; }
 }

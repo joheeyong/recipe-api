@@ -69,6 +69,7 @@ public class UserRecipeController {
             m.put("userId", r.getUserId());
             m.put("userName", userNameMap.getOrDefault(r.getUserId(), "익명"));
             m.put("createdAt", r.getCreatedAt());
+            m.put("updatedAt", r.getUpdatedAt());
             return m;
         }).collect(Collectors.toList());
 
@@ -150,6 +151,82 @@ public class UserRecipeController {
             if (instruction.isEmpty()) continue;
             RecipeStep step = new RecipeStep();
             step.setRecipeId(recipe.getId());
+            step.setStepNumber(i + 1);
+            step.setInstruction(instruction);
+            if (stepTips != null && i < stepTips.size() && !stepTips.get(i).trim().isEmpty()) {
+                step.setTip(stepTips.get(i).trim());
+            }
+            stepRepository.save(step);
+        }
+
+        return ResponseEntity.ok(recipe);
+    }
+
+    /** 내 레시피 수정 */
+    @PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> update(
+            @PathVariable Long id,
+            @RequestParam("title") String title,
+            @RequestParam(value = "description", defaultValue = "") String description,
+            @RequestParam(value = "category", defaultValue = "main") String category,
+            @RequestParam(value = "difficulty", defaultValue = "2") int difficulty,
+            @RequestParam(value = "cookTimeMinutes", defaultValue = "0") int cookTimeMinutes,
+            @RequestParam(value = "servingSize", defaultValue = "2") int servingSize,
+            @RequestParam(value = "calories", defaultValue = "0") int calories,
+            @RequestParam(value = "spicyLevel", defaultValue = "0") int spicyLevel,
+            @RequestParam(value = "tags", defaultValue = "") String tags,
+            @RequestParam(value = "ingredientNames") List<String> ingredientNames,
+            @RequestParam(value = "ingredientAmounts") List<String> ingredientAmounts,
+            @RequestParam(value = "stepInstructions") List<String> stepInstructions,
+            @RequestParam(value = "stepTips", required = false) List<String> stepTips,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            Authentication auth) {
+
+        if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다"));
+        Long userId = (Long) auth.getPrincipal();
+
+        Optional<Recipe> existing = recipeRepository.findById(id);
+        if (existing.isEmpty()) return ResponseEntity.notFound().build();
+        if (!userId.equals(existing.get().getUserId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "본인의 레시피만 수정할 수 있습니다"));
+        }
+
+        Recipe recipe = existing.get();
+        recipe.setTitle(title);
+        recipe.setDescription(description);
+        recipe.setCategory(category);
+        recipe.setDifficulty(difficulty);
+        recipe.setCookTimeMinutes(cookTimeMinutes);
+        recipe.setServingSize(servingSize);
+        recipe.setCalories(calories);
+        recipe.setSpicyLevel(spicyLevel);
+        recipe.setTags(tags);
+
+        if (image != null && !image.isEmpty()) {
+            recipe.setImageUrl(saveImage(image));
+        }
+        recipeRepository.save(recipe);
+
+        // 재료/조리법 교체
+        ingredientRepository.deleteByRecipeId(id);
+        for (int i = 0; i < ingredientNames.size(); i++) {
+            String name = ingredientNames.get(i).trim();
+            if (name.isEmpty()) continue;
+            RecipeIngredient ing = new RecipeIngredient();
+            ing.setRecipeId(id);
+            ing.setName(name);
+            ing.setAmount(i < ingredientAmounts.size() ? ingredientAmounts.get(i).trim() : "");
+            ing.setOptional(false);
+            ingredientRepository.save(ing);
+        }
+
+        stepRepository.deleteByRecipeId(id);
+        for (int i = 0; i < stepInstructions.size(); i++) {
+            String instruction = stepInstructions.get(i).trim();
+            if (instruction.isEmpty()) continue;
+            RecipeStep step = new RecipeStep();
+            step.setRecipeId(id);
             step.setStepNumber(i + 1);
             step.setInstruction(instruction);
             if (stepTips != null && i < stepTips.size() && !stepTips.get(i).trim().isEmpty()) {
